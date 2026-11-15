@@ -1,5 +1,3 @@
-import { Coffee } from "lucide-react";
-
 const PALETTES = [
   ["#f3e9d8", "#cfe4f2"],
   ["#efe2cf", "#e0c3a3"],
@@ -32,9 +30,20 @@ export function CafeCover({
       className={`relative flex items-center justify-center overflow-hidden ${className}`}
       style={{ background: `linear-gradient(135deg, ${a}, ${b})` }}
     >
-      <Coffee className="absolute -bottom-6 -right-4 size-28 -rotate-12 text-black/[0.06]" />
+      {/* faint map contours, echoing the intro */}
+      <svg
+        viewBox="0 0 100 100"
+        preserveAspectRatio="xMidYMid slice"
+        className="absolute inset-0 h-full w-full"
+        fill="none"
+        aria-hidden="true"
+      >
+        {[16, 28, 40, 52].map((r) => (
+          <circle key={r} cx="72" cy="74" r={r} stroke="#2b1b14" strokeOpacity="0.08" />
+        ))}
+      </svg>
       <span
-        className={`font-display text-foreground/70 ${large ? "text-8xl" : "text-5xl"}`}
+        className={`font-display relative text-foreground/70 ${large ? "text-8xl" : "text-4xl sm:text-5xl"}`}
       >
         {initial}
       </span>

@@ -2,9 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Results } from "@/components/results";
+import { SavedLink } from "@/components/saved-link";
 import { StatusState, type StatusKind } from "@/components/status-state";
 import { findCafes, geocodeCity, type Cafe } from "@/lib/cafes";
-import { SavedLink } from "@/components/saved-link";
 
 export default async function CafesPage({
   searchParams,
@@ -15,7 +15,8 @@ export default async function CafesPage({
 
   if (!city && !(lat && lng)) redirect("/");
 
-  let title = "Cafes near you";
+  let kicker = "Cafes";
+  let headline = "Near you";
   let place = "your location";
   let cafes: Cafe[] = [];
   let status: StatusKind | null = null;
@@ -25,7 +26,8 @@ export default async function CafesPage({
 
     if (lat && lng) {
       if (name) {
-        title = `Cafes in ${name}`;
+        kicker = "Cafes in";
+        headline = name;
         place = name;
       }
       const la = parseFloat(lat);
@@ -33,7 +35,8 @@ export default async function CafesPage({
       if (Number.isNaN(la) || Number.isNaN(ln)) status = "notfound";
       else coords = { lat: la, lng: ln };
     } else if (city) {
-      title = `Cafes in ${city}`;
+      kicker = "Cafes in";
+      headline = city;
       place = city;
       coords = await geocodeCity(city);
       if (!coords) status = "notfound";
@@ -48,7 +51,7 @@ export default async function CafesPage({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
+    <main className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-8 flex items-center justify-between">
         <Link
           href="/"
@@ -59,7 +62,10 @@ export default async function CafesPage({
         <SavedLink />
       </div>
 
-      <h1 className="font-display text-4xl sm:text-5xl">{title}</h1>
+      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+        {kicker}
+      </p>
+      <h1 className="font-display mt-2 text-4xl sm:text-6xl">{headline}</h1>
 
       {status && <StatusState kind={status} place={place} />}
 

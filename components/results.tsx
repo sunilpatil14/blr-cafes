@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import {
   Clock,
   DoorOpen,
+  List,
   Loader2,
+  Map as MapIcon,
   Shuffle,
   Sun,
   Wifi,
@@ -54,7 +56,7 @@ function Chip({
       onClick={onClick}
       disabled={disabled}
       aria-pressed={active}
-      className={`inline-flex select-none items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
+      className={`inline-flex shrink-0 select-none items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-card hover:bg-sky/40"
@@ -69,6 +71,8 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
   const router = useRouter();
   const [active, setActive] = useState<FeatureKey[]>([]);
   const [maxKm, setMaxKm] = useState<number>(Infinity);
+  const [view, setView] = useState<"list" | "map">("list");
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const [openNow, setOpenNow] = useState(false);
   const [infos, setInfos] = useState<Map<string, OpenInfo> | null>(null);
@@ -117,7 +121,7 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
     setOpenNow(true);
     setChecking(true);
     try {
-      setInfos(await evaluateOpen(cafes)); // re-checked each time it's switched on
+      setInfos(await evaluateOpen(cafes));
     } catch {
       setOpenNow(false);
       setOpenError(true);
@@ -138,13 +142,21 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
     router.push(`/cafes/${pick.id}`);
   }
 
+  function selectFromMap(id: string) {
+    setActiveId(id);
+    const el = document.getElementById(`cafe-${id}`);
+    if (el && el.offsetParent !== null) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
   return (
-    <div className="mt-4">
+    <div className="mt-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="text-muted-foreground">
           {filtering
             ? `Showing ${filtered.length} of ${cafes.length} cafes`
-            : `${cafes.length} cafes found, nearest first`}
+            : `${cafes.length} cafes · nearest first`}
         </p>
         <button
           type="button"
@@ -156,56 +168,59 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
         </button>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        <Chip
-          active={openNow}
-          disabled={counts.hours === 0 && !openNow}
-          onClick={toggleOpen}
-        >
-          {checking ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <DoorOpen className="size-4" />
-          )}
-          Open now
-          {openCount !== null && (
-            <span className="text-xs opacity-70">{openCount}</span>
-          )}
-        </Chip>
-
-        {FEATURES.map((f) => {
-          const on = active.includes(f.key);
-          return (
-            <Chip
-              key={f.key}
-              active={on}
-              disabled={counts[f.key] === 0 && !on}
-              onClick={() => toggle(f.key)}
-            >
-              <f.icon className="size-4" />
-              {f.label}
-              <span className="text-xs opacity-70">{counts[f.key]}</span>
-            </Chip>
-          );
-        })}
-
-        <span className="mx-1 hidden h-6 w-px bg-border sm:block" />
-
-        {DISTANCES.map((d) => (
-          <Chip key={d.label} active={maxKm === d.km} onClick={() => setMaxKm(d.km)}>
-            {d.label}
-          </Chip>
-        ))}
-
-        {filtering && (
-          <button
-            type="button"
-            onClick={clear}
-            className="inline-flex items-center gap-1 px-2 text-sm text-muted-foreground hover:text-foreground"
+      {/* sticky filter bar */}
+      <div className="sticky top-0 z-20 -mx-6 mt-4 border-b border-border/60 bg-background/85 px-6 py-3 backdrop-blur-md">
+        <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] lg:flex-wrap lg:overflow-visible [&::-webkit-scrollbar]:hidden">
+          <Chip
+            active={openNow}
+            disabled={counts.hours === 0 && !openNow}
+            onClick={toggleOpen}
           >
-            <X className="size-4" /> Clear
-          </button>
-        )}
+            {checking ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <DoorOpen className="size-4" />
+            )}
+            Open now
+            {openCount !== null && (
+              <span className="text-xs opacity-70">{openCount}</span>
+            )}
+          </Chip>
+
+          {FEATURES.map((f) => {
+            const on = active.includes(f.key);
+            return (
+              <Chip
+                key={f.key}
+                active={on}
+                disabled={counts[f.key] === 0 && !on}
+                onClick={() => toggle(f.key)}
+              >
+                <f.icon className="size-4" />
+                {f.label}
+                <span className="text-xs opacity-70">{counts[f.key]}</span>
+              </Chip>
+            );
+          })}
+
+          <span className="mx-1 hidden h-6 w-px shrink-0 bg-border sm:block" />
+
+          {DISTANCES.map((d) => (
+            <Chip key={d.label} active={maxKm === d.km} onClick={() => setMaxKm(d.km)}>
+              {d.label}
+            </Chip>
+          ))}
+
+          {filtering && (
+            <button
+              type="button"
+              onClick={clear}
+              className="inline-flex shrink-0 items-center gap-1 px-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" /> Clear
+            </button>
+          )}
+        </div>
       </div>
 
       {openError && (
@@ -237,18 +252,52 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
           </button>
         </div>
       ) : (
-        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_440px]">
-          <div className="grid content-start gap-6 sm:grid-cols-2">
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,560px)_1fr]">
+          <div
+            className={`content-start gap-4 ${
+              view === "map" ? "hidden lg:grid" : "grid"
+            }`}
+          >
             {filtered.map((cafe, i) => (
               <Reveal key={cafe.id} index={i}>
-                <CafeCard cafe={cafe} openInfo={infos?.get(cafe.id)} />
+                <CafeCard
+                  cafe={cafe}
+                  openInfo={infos?.get(cafe.id)}
+                  active={activeId === cafe.id}
+                  onActive={setActiveId}
+                />
               </Reveal>
             ))}
           </div>
 
-          <div className="order-first h-[320px] overflow-hidden rounded-2xl border border-border lg:sticky lg:top-6 lg:order-last lg:h-[calc(100vh-3rem)]">
-            <CafeMap cafes={pins} />
+          <div
+            className={`h-[70vh] overflow-hidden rounded-3xl border border-border lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] ${
+              view === "list" ? "hidden lg:block" : "block"
+            }`}
+          >
+            <CafeMap cafes={pins} activeId={activeId} onSelect={selectFromMap} />
           </div>
+        </div>
+      )}
+
+      {/* phone: switch between list and map */}
+      {filtered.length > 0 && (
+        <div className="fixed inset-x-0 bottom-6 z-30 flex justify-center lg:hidden">
+          <button
+            type="button"
+            onClick={() => setView((v) => (v === "list" ? "map" : "list"))}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm text-primary-foreground shadow-xl"
+          >
+            {view === "list" ? (
+              <>
+                <MapIcon className="size-4" /> Map
+              </>
+            ) : (
+              <>
+                <List className="size-4" /> List
+              </>
+            )}
+          </button>
         </div>
       )}
     </div>

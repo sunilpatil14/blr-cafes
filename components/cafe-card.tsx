@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Clock, MapPin, Sun, Wifi } from "lucide-react";
@@ -17,43 +19,59 @@ const DOT: Record<OpenInfo["state"], string> = {
 export function CafeCard({
   cafe,
   openInfo,
+  active = false,
+  onActive,
 }: {
   cafe: Cafe;
   openInfo?: OpenInfo;
+  active?: boolean;
+  onActive?: (id: string | null) => void;
 }) {
   const extra = getFeatured(cafe.id, cafe.name);
   const photo = extra?.images?.[0];
+  const hasMenu = !!extra?.menu?.length;
+  // straight-line distance x 1.3 for winding streets, at about 5 km/h
+  const walk = Math.max(1, Math.round(cafe.distanceKm * 1.3 * 12));
 
   return (
-    <div className="group relative h-full transition hover:-translate-y-1">
-      <Link href={`/cafes/${cafe.id}`} className="block h-full">
-        <article className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 transition group-hover:shadow-lg">
-          <div className="relative mb-4 h-32 shrink-0 overflow-hidden rounded-xl bg-secondary">
-            {photo ? (
-              <Image
-                src={photo}
-                alt={`${cafe.name} interior`}
-                fill
-                sizes="(min-width: 1024px) 20vw, 50vw"
-                className="object-cover"
-              />
-            ) : (
-              <CafeCover name={cafe.name} className="h-full w-full" />
-            )}
-            {extra?.menu && extra.menu.length > 0 && (
-              <span className="absolute left-2 top-2 rounded-full bg-card/90 px-2.5 py-1 text-xs font-medium text-accent">
-                Menu
-              </span>
-            )}
-          </div>
+    <div
+      id={`cafe-${cafe.id}`}
+      onMouseEnter={() => onActive?.(cafe.id)}
+      onMouseLeave={() => onActive?.(null)}
+      className={`group relative scroll-mt-40 rounded-3xl border transition duration-300 ${
+        active
+          ? "border-sky-deep bg-sky/20 shadow-lg"
+          : "border-border bg-card hover:shadow-md"
+      }`}
+    >
+      <Link href={`/cafes/${cafe.id}`} className="flex gap-4 p-3 sm:gap-5 sm:p-4">
+        <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl sm:size-32">
+          {photo ? (
+            <Image
+              src={photo}
+              alt={`${cafe.name} interior`}
+              fill
+              sizes="128px"
+              className="object-cover"
+            />
+          ) : (
+            <CafeCover name={cafe.name} className="h-full w-full" />
+          )}
+          {hasMenu && (
+            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-card/90 px-2 py-0.5 text-[10px] font-medium text-accent">
+              Menu
+            </span>
+          )}
+        </div>
 
-          <h3 className="font-display line-clamp-2 text-xl leading-snug">
+        <div className="flex min-w-0 flex-1 flex-col py-0.5 pr-9">
+          <h3 className="font-display line-clamp-2 text-lg leading-snug sm:text-xl">
             {cafe.name}
           </h3>
 
           <p className="mt-1 flex items-start gap-1.5 text-sm text-muted-foreground">
             <MapPin className="mt-0.5 size-4 shrink-0" />
-            <span className="line-clamp-2">
+            <span className="line-clamp-1">
               {cafe.address || "Tap for location & directions"}
             </span>
           </p>
@@ -72,23 +90,30 @@ export function CafeCard({
             </p>
           ) : null}
 
-          <div className="mt-auto flex items-center justify-between pt-4">
-            <div className="flex gap-2 text-accent">
-              {cafe.wifi && <Wifi className="size-4" aria-label="WiFi" />}
-              {cafe.outdoorSeating && (
-                <Sun className="size-4" aria-label="Outdoor seating" />
-              )}
-            </div>
+          <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-3">
+            {cafe.wifi && (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Wifi className="size-3.5 text-accent" /> WiFi
+              </span>
+            )}
+            {cafe.outdoorSeating && (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Sun className="size-3.5 text-accent" /> Outdoor
+              </span>
+            )}
             {cafe.distanceKm > 0 && (
-              <span className="text-sm font-medium">
+              <span className="ml-auto whitespace-nowrap rounded-full bg-sky/50 px-2.5 py-1 text-xs font-medium">
                 {cafe.distanceKm.toFixed(1)} km
+                {walk <= 40 && (
+                  <span className="hidden sm:inline"> · ~{walk} min walk</span>
+                )}
               </span>
             )}
           </div>
-        </article>
+        </div>
       </Link>
 
-      <SaveButton cafe={cafe} className="absolute right-7 top-7" />
+      <SaveButton cafe={cafe} className="absolute right-3 top-3" />
     </div>
   );
 }
