@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { SavedLink } from "@/components/saved-link";
 import {
   motion,
   useMotionTemplate,
@@ -11,16 +10,10 @@ import {
   useSpring,
   type Variants,
 } from "motion/react";
-import {
-  Coffee,
-  MapPin,
-  Navigation,
-  Search,
-  Sun,
-  Wifi,
-  type LucideIcon,
-} from "lucide-react";
+import { Coffee, Navigation, Search, type LucideIcon } from "lucide-react";
+import { HeroMap } from "@/components/hero-map";
 import { IntroLoader } from "@/components/intro-loader";
+import { SavedLink } from "@/components/saved-link";
 import { SearchBox } from "@/components/search-box";
 import { PLACES, placeLabel } from "@/data/places";
 
@@ -45,17 +38,6 @@ const item: Variants = {
 };
 
 const plainWords = ["Find", "the", "cafe", "that", "feels"];
-
-const floaters: {
-  icon: LucideIcon;
-  label: string;
-  className: string;
-  delay: number;
-}[] = [
-  { icon: MapPin, label: "Nearest first", className: "left-[6%] top-[30%]", delay: 0 },
-  { icon: Wifi, label: "WiFi spots", className: "right-[7%] top-[26%]", delay: 0.8 },
-  { icon: Sun, label: "Outdoor seating", className: "right-[11%] bottom-[26%]", delay: 1.6 },
-];
 
 const features: { icon: LucideIcon; title: string; text: string }[] = [
   {
@@ -133,7 +115,7 @@ export default function Home() {
 
       <main>
         <section
-          className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden pb-10 pt-24"
+          className="relative flex min-h-screen flex-col justify-center overflow-hidden pb-10 pt-28"
           onPointerMove={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
             mx.set(((e.clientX - r.left) / r.width) * 100);
@@ -165,7 +147,7 @@ export default function Home() {
             initial={{ opacity: 0, y: -16 }}
             animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: -16 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="absolute inset-x-0 top-0 z-20 mx-auto flex max-w-6xl items-center justify-between px-6 py-6"
+            className="absolute inset-x-0 top-0 z-20 mx-auto flex max-w-7xl items-center justify-between px-6 py-6"
           >
             <Link href="/" className="font-display flex items-center gap-2 text-xl">
               <Coffee className="size-5 text-accent" />
@@ -182,91 +164,81 @@ export default function Home() {
             </div>
           </motion.nav>
 
-          {/* floating chips (wide screens only) */}
-          {floaters.map((f) => (
+          {/* two columns: search on the left, map card on the right */}
+          <div className="relative mx-auto grid w-full max-w-7xl items-center gap-12 px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <motion.div
-              key={f.label}
-              className={`pointer-events-none absolute hidden xl:block ${f.className}`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={revealed ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-              transition={{ delay: 1.2 + f.delay, duration: 0.8 }}
+              variants={container}
+              initial="hidden"
+              animate={revealed ? "show" : "hidden"}
+              className="flex flex-col items-center text-center lg:items-start lg:text-left"
             >
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{
-                  duration: 5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: f.delay,
-                }}
-                className="flex items-center gap-2 rounded-full border border-border bg-card/80 px-4 py-2 text-sm shadow-sm backdrop-blur"
-              >
-                <f.icon className="size-4 text-sky-deep" />
-                {f.label}
-              </motion.div>
-            </motion.div>
-          ))}
-
-          {/* content */}
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate={revealed ? "show" : "hidden"}
-            className="relative flex flex-col items-center px-6 text-center"
-          >
-            <motion.p
-              variants={item}
-              className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground"
-            >
-              Cafe finder
-            </motion.p>
-
-            <h1 className="font-display max-w-3xl text-5xl leading-tight sm:text-7xl">
-              {plainWords.map((w) => (
-                <motion.span key={w} variants={item} className="mr-[0.25em] inline-block">
-                  {w}
-                </motion.span>
-              ))}
-              <motion.span
+              <motion.p
                 variants={item}
-                className="mr-[0.25em] inline-block italic text-accent"
+                className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground"
               >
-                just
-              </motion.span>
-              <motion.span
-                variants={item}
-                className="relative isolate inline-block italic text-accent"
-              >
-                right
+                Bengaluru cafe finder
+              </motion.p>
+
+              <h1 className="font-display text-5xl leading-[1.08] sm:text-6xl xl:text-7xl">
+                {plainWords.map((w) => (
+                  <motion.span key={w} variants={item} className="mr-[0.25em] inline-block">
+                    {w}
+                  </motion.span>
+                ))}
                 <motion.span
-                  aria-hidden
-                  className="absolute bottom-1 left-0 -z-10 h-3 w-full origin-left rounded-full bg-sky sm:h-4"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: revealed ? 1 : 0 }}
-                  transition={{ delay: 1.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                />
-              </motion.span>
-            </h1>
+                  variants={item}
+                  className="mr-[0.25em] inline-block italic text-accent"
+                >
+                  just
+                </motion.span>
+                <motion.span
+                  variants={item}
+                  className="relative isolate inline-block italic text-accent"
+                >
+                  right
+                  <motion.span
+                    aria-hidden
+                    className="absolute bottom-1 left-0 -z-10 h-3 w-full origin-left rounded-full bg-sky sm:h-4"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: revealed ? 1 : 0 }}
+                    transition={{ delay: 1.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                </motion.span>
+              </h1>
 
-            <motion.p
-              variants={item}
-              className="mt-6 max-w-lg text-lg text-muted-foreground"
-            >
-              Browse interiors, menus and coffee types in your city, before you
-              step through the door.
-            </motion.p>
+              <motion.p
+                variants={item}
+                className="mt-6 max-w-lg text-lg text-muted-foreground"
+              >
+                Search an area or a cafe name and see hours, details and
+                directions before you step through the door.
+              </motion.p>
 
-            <motion.div variants={item} className="mt-10 flex w-full justify-center">
-              <SearchBox />
+              <motion.div variants={item} className="mt-10 flex w-full justify-center lg:justify-start">
+                <SearchBox />
+              </motion.div>
+
+              <motion.p
+                variants={item}
+                className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground lg:justify-start"
+              >
+                <span>{CAFE_COUNT} Bengaluru cafes</span>
+                <span aria-hidden>·</span>
+                <span>Free to use</span>
+                <span aria-hidden>·</span>
+                <span>No sign-up</span>
+              </motion.p>
             </motion.div>
-          </motion.div>
+
+            <HeroMap play={revealed} />
+          </div>
 
           {/* area strip */}
           <motion.div
             className="relative w-full"
             initial={{ opacity: 0 }}
             animate={{ opacity: revealed ? 1 : 0 }}
-            transition={{ delay: 1.4, duration: 0.9 }}
+            transition={{ delay: 1.6, duration: 0.9 }}
           >
             <AreaMarquee still={!!reduceMotion} />
           </motion.div>

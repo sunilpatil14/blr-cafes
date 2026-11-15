@@ -2,10 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Coffee,
+  Loader2,
+  LocateFixed,
+  MapPin,
+  Search,
+  Shuffle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PLACES, placeLabel, type Place } from "@/data/places";
-import { Coffee, Loader2, MapPin, Search, Shuffle } from "lucide-react";
 
 type CafeHit = { id: string; name: string; address: string; featured: boolean };
 type Option =
@@ -14,6 +21,7 @@ type Option =
   | { kind: "text" };
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+const POPULAR = PLACES.filter((p) => p.name !== "Bengaluru").slice(0, 6);
 
 export function SearchBox() {
   const router = useRouter();
@@ -22,8 +30,8 @@ export function SearchBox() {
   const [active, setActive] = useState(0);
   const [cafeHits, setCafeHits] = useState<CafeHit[]>([]);
   const [locating, setLocating] = useState(false);
-  const [error, setError] = useState("");
   const [surprising, setSurprising] = useState(false);
+  const [error, setError] = useState("");
 
   const typed = city.trim();
 
@@ -47,7 +55,7 @@ export function SearchBox() {
 
   const places = useMemo(() => {
     const q = norm(city);
-    if (!q) return PLACES.slice(0, 6);
+    if (!q) return [];
     return PLACES.map((p) => {
       const names = [p.name, ...(p.aliases ?? [])].map(norm);
       const starts = names.some((n) => n.startsWith(q));
@@ -123,7 +131,7 @@ export function SearchBox() {
     );
   }
 
-    function handleSurprise() {
+  function handleSurprise() {
     setError("");
     setSurprising(true);
 
@@ -151,136 +159,153 @@ export function SearchBox() {
   }
 
   return (
-    <div className="w-full max-w-xl">
-      <div className="relative">
-        <form
-          onSubmit={handleSubmit}
-          className="flex items-center gap-2 rounded-full border border-border bg-card p-2 shadow-sm"
-        >
-          <Search className="ml-3 size-5 shrink-0 text-muted-foreground" />
-          <Input
-            value={city}
-            onChange={(e) => {
-              setCity(e.target.value);
-              setActive(0);
-              setOpen(true);
-            }}
-            onFocus={() => setOpen(true)}
-            onBlur={() => setOpen(false)}
-            onKeyDown={handleKeyDown}
-            role="combobox"
-            aria-expanded={open}
-            aria-controls="search-suggestions"
-            autoComplete="off"
-            placeholder="Search an area or a cafe name"
-            className="h-10 border-0 bg-transparent shadow-none focus-visible:ring-0"
-          />
-          <Button type="submit" className="h-10 rounded-full px-6">
-            Search
-          </Button>
-        </form>
-
-        {open && options.length > 0 && (
-          <ul
-            id="search-suggestions"
-            role="listbox"
-            className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-border bg-card text-left shadow-lg"
+    <div className="w-full max-w-xl text-left">
+      <div className="rounded-[2rem] border border-border bg-card/80 p-3 shadow-xl shadow-[#2b1b14]/5 backdrop-blur">
+        <div className="relative">
+          <form
+            onSubmit={handleSubmit}
+            className="flex items-center gap-1 rounded-full border border-border bg-background py-1.5 pl-4 pr-1.5 transition focus-within:border-sky-deep focus-within:ring-4 focus-within:ring-sky/50"
           >
-            {!typed && (
-              <li className="px-5 pb-1 pt-3 text-xs uppercase tracking-widest text-muted-foreground">
-                Popular areas
-              </li>
-            )}
+            <Search className="hidden size-5 shrink-0 text-muted-foreground sm:block" />
+            <Input
+              value={city}
+              onChange={(e) => {
+                setCity(e.target.value);
+                setActive(0);
+                setOpen(true);
+              }}
+              onFocus={() => setOpen(true)}
+              onBlur={() => setOpen(false)}
+              onKeyDown={handleKeyDown}
+              role="combobox"
+              aria-expanded={open}
+              aria-controls="search-suggestions"
+              autoComplete="off"
+              placeholder="Search an area or a cafe name"
+              className="h-11 border-0 bg-transparent shadow-none focus-visible:ring-0"
+            />
+            <button
+              type="button"
+              onClick={handleNearMe}
+              disabled={locating}
+              aria-label="Use my current location"
+              title="Use my current location"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-accent transition hover:bg-sky/50 disabled:opacity-60"
+            >
+              {locating ? (
+                <Loader2 className="size-5 animate-spin" />
+              ) : (
+                <LocateFixed className="size-5" />
+              )}
+            </button>
+            <Button type="submit" className="h-11 rounded-full px-5 sm:px-6">
+              Search
+            </Button>
+          </form>
 
-            {options.map((opt, i) => (
-              <li
-                key={
-                  opt.kind === "place"
-                    ? `p-${opt.place.name}`
-                    : opt.kind === "cafe"
-                      ? `c-${opt.cafe.id}`
-                      : "text"
-                }
-                role="option"
-                aria-selected={i === current}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  choose(opt);
-                }}
-                onMouseEnter={() => setActive(i)}
-                className={`flex cursor-pointer items-center gap-3 px-5 py-3 text-sm ${
-                  i === current ? "bg-secondary" : ""
-                } ${opt.kind === "text" ? "border-t border-border" : ""}`}
-              >
-                {opt.kind === "place" && (
-                  <>
-                    <MapPin className="size-4 shrink-0 text-accent" />
-                    <span>{placeLabel(opt.place)}</span>
-                  </>
-                )}
-                {opt.kind === "cafe" && (
-                  <>
-                    <Coffee className="size-4 shrink-0 text-accent" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate">{opt.cafe.name}</span>
-                      {opt.cafe.address && (
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {opt.cafe.address}
+          {open && typed && options.length > 0 && (
+            <ul
+              id="search-suggestions"
+              role="listbox"
+              className="absolute left-0 right-0 top-full z-30 mt-2 max-h-80 overflow-y-auto rounded-2xl border border-border bg-card text-left shadow-lg"
+            >
+              {options.map((opt, i) => (
+                <li
+                  key={
+                    opt.kind === "place"
+                      ? `p-${opt.place.name}`
+                      : opt.kind === "cafe"
+                        ? `c-${opt.cafe.id}`
+                        : "text"
+                  }
+                  role="option"
+                  aria-selected={i === current}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    choose(opt);
+                  }}
+                  onMouseEnter={() => setActive(i)}
+                  className={`flex cursor-pointer items-center gap-3 px-5 py-3 text-sm ${
+                    i === current ? "bg-secondary" : ""
+                  } ${opt.kind === "text" ? "border-t border-border" : ""}`}
+                >
+                  {opt.kind === "place" && (
+                    <>
+                      <MapPin className="size-4 shrink-0 text-accent" />
+                      <span>{placeLabel(opt.place)}</span>
+                    </>
+                  )}
+                  {opt.kind === "cafe" && (
+                    <>
+                      <Coffee className="size-4 shrink-0 text-accent" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate">{opt.cafe.name}</span>
+                        {opt.cafe.address && (
+                          <span className="block truncate text-xs text-muted-foreground">
+                            {opt.cafe.address}
+                          </span>
+                        )}
+                      </span>
+                      {opt.cafe.featured && (
+                        <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-xs text-accent">
+                          Menu
                         </span>
                       )}
-                    </span>
-                    {opt.cafe.featured && (
-                      <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-xs text-accent">
-                        Menu
+                    </>
+                  )}
+                  {opt.kind === "text" && (
+                    <>
+                      <Search className="size-4 shrink-0 text-muted-foreground" />
+                      <span>
+                        Search for <strong>“{typed}”</strong> anywhere in India
                       </span>
-                    )}
-                  </>
-                )}
-                {opt.kind === "text" && (
-                  <>
-                    <Search className="size-4 shrink-0 text-muted-foreground" />
-                    <span>
-                      Search for <strong>“{typed}”</strong> anywhere in India
-                    </span>
-                  </>
-                )}
-              </li>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="mt-4 px-2">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">
+            Popular areas
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {POPULAR.map((p) => (
+              <button
+                key={p.name}
+                type="button"
+                onClick={() => choose({ kind: "place", place: p })}
+                className="rounded-full border border-border bg-background px-3.5 py-1.5 text-sm transition hover:border-sky-deep hover:bg-sky/40"
+              >
+                {p.name}
+              </button>
             ))}
-          </ul>
-        )}
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between border-t border-border/70 px-2 pt-3">
+          <button
+            type="button"
+            onClick={handleSurprise}
+            disabled={surprising}
+            className="inline-flex items-center gap-2 text-sm font-medium text-accent transition hover:opacity-80 disabled:opacity-60"
+          >
+            {surprising ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Shuffle className="size-4" />
+            )}
+            {surprising ? "Picking…" : "Surprise me"}
+          </button>
+          <span className="text-xs text-muted-foreground">
+            Press Enter to search
+          </span>
+        </div>
       </div>
 
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-        <button
-          type="button"
-          onClick={handleNearMe}
-          disabled={locating}
-          className="flex items-center gap-2 text-sm font-medium text-accent transition hover:opacity-80 disabled:opacity-60"
-        >
-          {locating ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <MapPin className="size-4" />
-          )}
-          {locating ? "Finding you…" : "Use my current location"}
-        </button>
-
-        <button
-          type="button"
-          onClick={handleSurprise}
-          disabled={surprising}
-          className="flex items-center gap-2 text-sm font-medium text-accent transition hover:opacity-80 disabled:opacity-60"
-        >
-          {surprising ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <Shuffle className="size-4" />
-          )}
-          {surprising ? "Picking…" : "Surprise me"}
-        </button>
-      </div>
-
-      {error && <p className="mt-3 text-center text-sm text-red-700">{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
     </div>
   );
 }
