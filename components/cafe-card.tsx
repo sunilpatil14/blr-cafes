@@ -5,8 +5,22 @@ import { CafeCover } from "@/components/cafe-cover";
 import { SaveButton } from "@/components/save-button";
 import type { Cafe } from "@/lib/cafes";
 import { getFeatured } from "@/lib/featured";
+import { prettyHours } from "@/lib/hours";
+import type { OpenInfo } from "@/lib/open-now";
 
-export function CafeCard({ cafe }: { cafe: Cafe }) {
+const DOT: Record<OpenInfo["state"], string> = {
+  open: "bg-sky-deep",
+  closed: "bg-muted-foreground/40",
+  unknown: "bg-accent/60",
+};
+
+export function CafeCard({
+  cafe,
+  openInfo,
+}: {
+  cafe: Cafe;
+  openInfo?: OpenInfo;
+}) {
   const extra = getFeatured(cafe.id, cafe.name);
   const photo = extra?.images?.[0];
 
@@ -44,12 +58,19 @@ export function CafeCard({ cafe }: { cafe: Cafe }) {
             </span>
           </p>
 
-          {cafe.openingHours && (
+          {openInfo ? (
+            <p className="mt-1 flex items-center gap-1.5 text-sm">
+              <span className="flex size-4 shrink-0 items-center justify-center">
+                <span className={`size-2 rounded-full ${DOT[openInfo.state]}`} />
+              </span>
+              <span className="line-clamp-1">{openInfo.text}</span>
+            </p>
+          ) : cafe.openingHours ? (
             <p className="mt-1 flex items-start gap-1.5 text-sm text-muted-foreground">
               <Clock className="mt-0.5 size-4 shrink-0" />
-              <span className="line-clamp-1">{cafe.openingHours}</span>
+              <span className="line-clamp-1">{prettyHours(cafe.openingHours)}</span>
             </p>
-          )}
+          ) : null}
 
           <div className="mt-auto flex items-center justify-between pt-4">
             <div className="flex gap-2 text-accent">

@@ -63,7 +63,12 @@ export default async function CafesPage({
 
       {status && <StatusState kind={status} place={place} />}
 
-      {cafes.length > 0 && <Results cafes={cafes} />}
+      {cafes.length > 0 && (
+        <Results
+          key={`${city ?? ""}|${lat ?? ""}|${lng ?? ""}`}
+          cafes={cafes}
+        />
+      )}
 
       <p className="mt-16 text-xs text-muted-foreground">
         Cafe data © OpenStreetMap contributors

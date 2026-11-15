@@ -2,11 +2,21 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock, Shuffle, Sun, Wifi, X, type LucideIcon } from "lucide-react";
+import {
+  Clock,
+  DoorOpen,
+  Loader2,
+  Shuffle,
+  Sun,
+  Wifi,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { CafeCard } from "@/components/cafe-card";
 import { CafeMap } from "@/components/cafe-map";
 import { Reveal } from "@/components/reveal";
 import type { Cafe } from "@/lib/cafes";
+import { evaluateOpen, type OpenInfo } from "@/lib/open-now";
 
 type FeatureKey = "wifi" | "outdoor" | "hours";
 
@@ -44,7 +54,7 @@ function Chip({
       onClick={onClick}
       disabled={disabled}
       aria-pressed={active}
-      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
+      className={`inline-flex select-none items-center gap-2 rounded-full border px-4 py-2 text-sm transition ${
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-card hover:bg-sky/40"
@@ -60,6 +70,11 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
   const [active, setActive] = useState<FeatureKey[]>([]);
   const [maxKm, setMaxKm] = useState<number>(Infinity);
 
+  const [openNow, setOpenNow] = useState(false);
+  const [infos, setInfos] = useState<Map<string, OpenInfo> | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [openError, setOpenError] = useState(false);
+
   const counts = useMemo(
     () =>
       Object.fromEntries(
@@ -68,27 +83,53 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
     [cafes]
   );
 
+  const openCount = infos
+    ? cafes.filter((c) => infos.get(c.id)?.state === "open").length
+    : null;
+
   const filtered = useMemo(() => {
     const tests = FEATURES.filter((f) => active.includes(f.key));
     return cafes.filter(
-      (c) => c.distanceKm <= maxKm && tests.every((f) => f.test(c))
+      (c) =>
+        c.distanceKm <= maxKm &&
+        tests.every((f) => f.test(c)) &&
+        (!openNow || !infos || infos.get(c.id)?.state === "open")
     );
-  }, [cafes, active, maxKm]);
+  }, [cafes, active, maxKm, openNow, infos]);
 
   const pins = useMemo(
     () => filtered.map(({ id, name, lat, lng }) => ({ id, name, lat, lng })),
     [filtered]
   );
 
-  const filtering = active.length > 0 || maxKm !== Infinity;
+  const filtering = active.length > 0 || maxKm !== Infinity || openNow;
 
   function toggle(key: FeatureKey) {
     setActive((a) => (a.includes(key) ? a.filter((k) => k !== key) : [...a, key]));
   }
 
+  async function toggleOpen() {
+    if (openNow) {
+      setOpenNow(false);
+      return;
+    }
+    setOpenError(false);
+    setOpenNow(true);
+    setChecking(true);
+    try {
+      setInfos(await evaluateOpen(cafes)); // re-checked each time it's switched on
+    } catch {
+      setOpenNow(false);
+      setOpenError(true);
+    } finally {
+      setChecking(false);
+    }
+  }
+
   function clear() {
     setActive([]);
     setMaxKm(Infinity);
+    setOpenNow(false);
   }
 
   function surprise() {
@@ -116,6 +157,22 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-2">
+        <Chip
+          active={openNow}
+          disabled={counts.hours === 0 && !openNow}
+          onClick={toggleOpen}
+        >
+          {checking ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <DoorOpen className="size-4" />
+          )}
+          Open now
+          {openCount !== null && (
+            <span className="text-xs opacity-70">{openCount}</span>
+          )}
+        </Chip>
+
         {FEATURES.map((f) => {
           const on = active.includes(f.key);
           return (
@@ -151,6 +208,19 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
         )}
       </div>
 
+      {openError && (
+        <p className="mt-3 text-sm text-red-700">
+          Couldn't check opening hours right now. Please try again.
+        </p>
+      )}
+      {openNow && infos && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Based on opening hours listed on OpenStreetMap, which may be out of
+          date. {cafes.length - counts.hours} cafes have no hours listed and
+          aren't shown here.
+        </p>
+      )}
+
       {filtered.length === 0 ? (
         <div className="mt-16 text-center">
           <p className="font-display text-2xl">No cafes match those filters</p>
@@ -171,7 +241,7 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
           <div className="grid content-start gap-6 sm:grid-cols-2">
             {filtered.map((cafe, i) => (
               <Reveal key={cafe.id} index={i}>
-                <CafeCard cafe={cafe} />
+                <CafeCard cafe={cafe} openInfo={infos?.get(cafe.id)} />
               </Reveal>
             ))}
           </div>

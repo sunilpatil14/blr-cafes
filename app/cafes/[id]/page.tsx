@@ -8,6 +8,7 @@ export const instant = false;
 import { CafeCover } from "@/components/cafe-cover";
 import { ShareButton } from "@/components/share-button";
 import { SaveButton } from "@/components/save-button";
+import { prettyHours } from "@/lib/hours";
 
 export default async function CafeDetailPage({
   params,
@@ -88,10 +89,10 @@ export default async function CafeDetailPage({
           <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
           {address || "Address not listed"}
         </p>
-        {cafe.openingHours && (
+        {cafe.openingHours   && (
           <p className="flex items-start gap-2 text-sm">
             <Clock className="mt-0.5 size-4 shrink-0 text-accent" />
-            {cafe.openingHours}
+            {prettyHours(cafe.openingHours)}
           </p>
         )}
         {cafe.phone && (
