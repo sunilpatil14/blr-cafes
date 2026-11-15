@@ -7,6 +7,7 @@ import { getFeatured } from "@/lib/featured";
 export const instant = false;
 import { CafeCover } from "@/components/cafe-cover";
 import { ShareButton } from "@/components/share-button";
+import { SaveButton } from "@/components/save-button";
 
 export default async function CafeDetailPage({
   params,
@@ -45,8 +46,9 @@ export default async function CafeDetailPage({
         <p className="mt-3 text-lg text-muted-foreground">{extra.tagline}</p>
       )}
 
-      <div className="mt-5">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
         <ShareButton name={cafe.name} />
+        <SaveButton cafe={cafe} labelled />
       </div>
 
       {/* Gallery */}

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { SavedLink } from "@/components/saved-link";
 import {
   motion,
   useMotionTemplate,
@@ -170,12 +171,15 @@ export default function Home() {
               <Coffee className="size-5 text-accent" />
               Brew Atlas
             </Link>
-            <a
-              href="#how"
-              className="text-sm text-muted-foreground transition hover:text-foreground"
-            >
-              How it works
-            </a>
+            <div className="flex items-center gap-6">
+              <SavedLink />
+              <a
+                href="#how"
+                className="text-sm text-muted-foreground transition hover:text-foreground"
+              >
+                How it works
+              </a>
+            </div>
           </motion.nav>
 
           {/* floating chips (wide screens only) */}

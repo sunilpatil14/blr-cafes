@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Results } from "@/components/results";
 import { StatusState, type StatusKind } from "@/components/status-state";
 import { findCafes, geocodeCity, type Cafe } from "@/lib/cafes";
+import { SavedLink } from "@/components/saved-link";
 
 export default async function CafesPage({
   searchParams,
@@ -48,12 +49,15 @@ export default async function CafesPage({
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
-      <Link
-        href="/"
-        className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" /> Back to search
-      </Link>
+      <div className="mb-8 flex items-center justify-between">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" /> Back to search
+        </Link>
+        <SavedLink />
+      </div>
 
       <h1 className="font-display text-4xl sm:text-5xl">{title}</h1>
 
