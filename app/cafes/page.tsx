@@ -1,18 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { CafeCard } from "@/components/cafe-card";
-import { CafeMap } from "@/components/cafe-map";
-import { Reveal } from "@/components/reveal";
+import { Results } from "@/components/results";
 import { StatusState, type StatusKind } from "@/components/status-state";
 import { findCafes, geocodeCity, type Cafe } from "@/lib/cafes";
 
 export default async function CafesPage({
   searchParams,
 }: {
-   searchParams: Promise<{ city?: string; lat?: string; lng?: string; name?: string }>;
+  searchParams: Promise<{ city?: string; lat?: string; lng?: string; name?: string }>;
 }) {
-   const { city, lat, lng, name } = await searchParams;
+  const { city, lat, lng, name } = await searchParams;
 
   if (!city && !(lat && lng)) redirect("/");
 
@@ -24,8 +22,8 @@ export default async function CafesPage({
   try {
     let coords: { lat: number; lng: number } | null = null;
 
-      if (lat && lng) {
-            if (name) {
+    if (lat && lng) {
+      if (name) {
         title = `Cafes in ${name}`;
         place = name;
       }
@@ -58,31 +56,11 @@ export default async function CafesPage({
       </Link>
 
       <h1 className="font-display text-4xl sm:text-5xl">{title}</h1>
-      {cafes.length > 0 && (
-        <p className="mt-2 text-muted-foreground">
-          {cafes.length} cafes found, nearest first
-        </p>
-      )}
 
       {status && <StatusState kind={status} place={place} />}
 
-      {cafes.length > 0 && (
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_440px]">
-          <div className="grid gap-6 sm:grid-cols-2">
-            {cafes.map((cafe, i) => (
-              <Reveal key={cafe.id} index={i}>
-                <CafeCard cafe={cafe} />
-              </Reveal>
-            ))}
-          </div>
+      {cafes.length > 0 && <Results cafes={cafes} />}
 
-          <div className="order-first h-[320px] overflow-hidden rounded-2xl border border-border lg:sticky lg:top-6 lg:order-last lg:h-[calc(100vh-3rem)]">
-            <CafeMap
-              cafes={cafes.map(({ id, name, lat, lng }) => ({ id, name, lat, lng }))}
-            />
-          </div>
-        </div>
-      )}
       <p className="mt-16 text-xs text-muted-foreground">
         Cafe data © OpenStreetMap contributors
       </p>

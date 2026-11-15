@@ -6,6 +6,7 @@ import { getCafeById, reverseGeocode, type Cafe } from "@/lib/cafes";
 import { getFeatured } from "@/lib/featured";
 export const instant = false;
 import { CafeCover } from "@/components/cafe-cover";
+import { ShareButton } from "@/components/share-button";
 
 export default async function CafeDetailPage({
   params,
@@ -43,6 +44,10 @@ export default async function CafeDetailPage({
       {extra?.tagline && (
         <p className="mt-3 text-lg text-muted-foreground">{extra.tagline}</p>
       )}
+
+      <div className="mt-5">
+        <ShareButton name={cafe.name} />
+      </div>
 
       {/* Gallery */}
       <section className="mt-8">

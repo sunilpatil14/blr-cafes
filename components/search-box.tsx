@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Coffee, Loader2, MapPin, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PLACES, placeLabel, type Place } from "@/data/places";
+import { Coffee, Loader2, MapPin, Search, Shuffle } from "lucide-react";
 
 type CafeHit = { id: string; name: string; address: string; featured: boolean };
 type Option =
@@ -23,6 +23,7 @@ export function SearchBox() {
   const [cafeHits, setCafeHits] = useState<CafeHit[]>([]);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
+  const [surprising, setSurprising] = useState(false);
 
   const typed = city.trim();
 
@@ -119,6 +120,33 @@ export function SearchBox() {
         setError("Couldn't get your location. Allow access or search by area.");
       },
       { enableHighAccuracy: false, timeout: 10000 }
+    );
+  }
+
+    function handleSurprise() {
+    setError("");
+    setSurprising(true);
+
+    const go = async (query = "") => {
+      try {
+        const res = await fetch(`/api/surprise${query}`);
+        const json = await res.json();
+        if (json.id) router.push(`/cafes/${json.id}`);
+        else setSurprising(false);
+      } catch {
+        setSurprising(false);
+        setError("Couldn't pick a cafe right now. Please try again.");
+      }
+    };
+
+    if (!("geolocation" in navigator)) {
+      go();
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => go(`?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`),
+      () => go(),
+      { timeout: 6000 }
     );
   }
 
@@ -222,19 +250,35 @@ export function SearchBox() {
         )}
       </div>
 
-      <button
-        type="button"
-        onClick={handleNearMe}
-        disabled={locating}
-        className="mx-auto mt-4 flex items-center gap-2 text-sm font-medium text-accent transition hover:opacity-80 disabled:opacity-60"
-      >
-        {locating ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          <MapPin className="size-4" />
-        )}
-        {locating ? "Finding you…" : "Use my current location"}
-      </button>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+        <button
+          type="button"
+          onClick={handleNearMe}
+          disabled={locating}
+          className="flex items-center gap-2 text-sm font-medium text-accent transition hover:opacity-80 disabled:opacity-60"
+        >
+          {locating ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <MapPin className="size-4" />
+          )}
+          {locating ? "Finding you…" : "Use my current location"}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleSurprise}
+          disabled={surprising}
+          className="flex items-center gap-2 text-sm font-medium text-accent transition hover:opacity-80 disabled:opacity-60"
+        >
+          {surprising ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Shuffle className="size-4" />
+          )}
+          {surprising ? "Picking…" : "Surprise me"}
+        </button>
+      </div>
 
       {error && <p className="mt-3 text-center text-sm text-red-700">{error}</p>}
     </div>
