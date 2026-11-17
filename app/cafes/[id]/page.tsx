@@ -131,6 +131,14 @@ export default async function CafeDetailPage({
           >
             <Navigation className="size-4" /> Get directions
           </a>
+           <a
+            href={`https://www.google.com/maps/search/${encodeURIComponent(cafe.name)}/@${cafe.lat},${cafe.lng},19z`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2 text-sm hover:bg-secondary"
+          >
+            See photos & reviews
+          </a>
         </div>  
       </section>
 
