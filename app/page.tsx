@@ -10,15 +10,8 @@ import {
   useSpring,
   type Variants,
 } from "motion/react";
-import {
-  Coffee,
-  DoorOpen,
-  Navigation,
-  Search,
-  Sun,
-  Wifi,
-  type LucideIcon,
-} from "lucide-react";
+import { Coffee, Navigation, Search, type LucideIcon } from "lucide-react";
+import { HeroMap } from "@/components/hero-map";
 import { IntroLoader } from "@/components/intro-loader";
 import { SavedLink } from "@/components/saved-link";
 import { SearchBox } from "@/components/search-box";
@@ -28,7 +21,6 @@ import { PLACES, placeLabel } from "@/data/places";
 let introPlayed = false;
 
 const CAFE_COUNT = "1,100+"; // edit to match your snapshot
-const SKY = "#bfddf0";
 
 const container: Variants = {
   hidden: {},
@@ -46,36 +38,6 @@ const item: Variants = {
 };
 
 const plainWords = ["Find", "the", "cafe", "that", "feels"];
-
-const streets = [
-  "M-20 120L1020 170",
-  "M-20 330C250 300 600 380 1020 320",
-  "M-20 500L1020 450",
-  "M180 -20L220 620",
-  "M470 -20C430 200 520 400 480 620",
-  "M760 -20L800 620",
-];
-const ring =
-  "M120 300C120 120 360 60 500 60S880 140 880 300S640 540 500 540S120 480 120 300Z";
-
-// cafe dots (percent of the map layer)
-const DOTS = [
-  { x: 8, y: 22 }, { x: 16, y: 64 }, { x: 24, y: 38 }, { x: 31, y: 78 },
-  { x: 40, y: 14 }, { x: 58, y: 84 }, { x: 66, y: 26 }, { x: 74, y: 70 },
-  { x: 82, y: 40 }, { x: 90, y: 18 }, { x: 93, y: 62 }, { x: 48, y: 90 },
-  { x: 5, y: 84 }, { x: 70, y: 10 },
-];
-
-const floaters: {
-  icon: LucideIcon;
-  label: string;
-  className: string;
-  delay: number;
-}[] = [
-  { icon: DoorOpen, label: "Open now", className: "left-[4%] top-[32%]", delay: 0 },
-  { icon: Wifi, label: "WiFi spots", className: "right-[4%] top-[38%]", delay: 0.7 },
-  { icon: Sun, label: "Outdoor seating", className: "left-[6%] top-[64%]", delay: 1.4 },
-];
 
 const features: { icon: LucideIcon; title: string; text: string }[] = [
   {
@@ -95,51 +57,6 @@ const features: { icon: LucideIcon; title: string; text: string }[] = [
   },
 ];
 
-function DropPin({ play }: { play: boolean }) {
-  return (
-    <div className="relative mb-4 flex flex-col items-center">
-      <motion.div
-        initial={{ y: -180, opacity: 0 }}
-        animate={play ? { y: 0, opacity: 1 } : { y: -180, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.3 }}
-      >
-        <svg
-          viewBox="0 0 24 24"
-          className="size-14 drop-shadow-[0_8px_14px_rgba(0,0,0,0.5)] sm:size-16"
-          fill="none"
-        >
-          <path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill={SKY} />
-          <g
-            transform="translate(-0.4 0)"
-            stroke="#2b1b14"
-            strokeWidth="0.9"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path
-              d="M8.6 9h5.6v2.4a2.8 2.8 0 0 1-2.8 2.8 2.8 2.8 0 0 1-2.8-2.8z"
-              fill="#2b1b14"
-            />
-            <path d="M14.2 9.8h.6a1.4 1.4 0 0 1 0 2.8h-.6" />
-          </g>
-        </svg>
-      </motion.div>
-
-      {/* ripples under the tip */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-1 flex h-0 items-center justify-center">
-        <div style={{ transform: "scaleY(0.35)" }}>
-          <motion.span
-            className="block size-12 rounded-full border"
-            style={{ borderColor: SKY }}
-            animate={play ? { scale: [0.3, 3], opacity: [0, 0.7, 0] } : { opacity: 0 }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeOut", delay: 1 }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function AreaMarquee({ still }: { still: boolean }) {
   const row = PLACES.filter((p) => p.name !== "Bengaluru");
   const fade =
@@ -147,7 +64,7 @@ function AreaMarquee({ still }: { still: boolean }) {
 
   return (
     <div
-      className="relative w-full overflow-hidden"
+      className="relative mt-16 w-full overflow-hidden"
       style={{ maskImage: fade, WebkitMaskImage: fade }}
     >
       <motion.div
@@ -159,7 +76,7 @@ function AreaMarquee({ still }: { still: boolean }) {
           <Link
             key={`${p.name}-${i}`}
             href={`/cafes?lat=${p.lat}&lng=${p.lng}&name=${encodeURIComponent(placeLabel(p))}`}
-            className="mr-3 whitespace-nowrap rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-[#f6f0e6]/85 transition hover:border-sky hover:bg-white/10"
+            className="mr-3 whitespace-nowrap rounded-full border border-border bg-card px-4 py-2 text-sm transition hover:border-sky-deep hover:bg-sky/50"
           >
             {p.name}
           </Link>
@@ -171,7 +88,6 @@ function AreaMarquee({ still }: { still: boolean }) {
 
 export default function Home() {
   const reduceMotion = useReducedMotion();
-  const still = !!reduceMotion;
   const [mounted, setMounted] = useState(() => !introPlayed);
   const [revealed, setRevealed] = useState(() => introPlayed);
 
@@ -188,10 +104,10 @@ export default function Home() {
 
   // glow that follows the pointer
   const mx = useMotionValue(50);
-  const my = useMotionValue(35);
+  const my = useMotionValue(30);
   const sx = useSpring(mx, { stiffness: 50, damping: 20 });
   const sy = useSpring(my, { stiffness: 50, damping: 20 });
-  const spotlight = useMotionTemplate`radial-gradient(480px circle at ${sx}% ${sy}%, rgba(191,221,240,0.16), transparent 62%)`;
+  const spotlight = useMotionTemplate`radial-gradient(520px circle at ${sx}% ${sy}%, rgba(191,221,240,0.6), transparent 60%)`;
 
   return (
     <>
@@ -199,87 +115,32 @@ export default function Home() {
 
       <main>
         <section
-          className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden rounded-b-[2.5rem] bg-[#2b1b14] pb-10 pt-28 sm:rounded-b-[4rem]"
+          className="relative flex min-h-screen flex-col justify-center overflow-hidden pb-10 pt-28"
           onPointerMove={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
             mx.set(((e.clientX - r.left) / r.width) * 100);
             my.set(((e.clientY - r.top) / r.height) * 100);
           }}
         >
-          {/* slowly zooming map layer */}
-          <motion.div
-            className="pointer-events-none absolute inset-0"
-            animate={still ? undefined : { scale: [1, 1.1] }}
-            transition={{
-              duration: 30,
-              ease: "easeInOut",
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-          >
-            <svg
-              viewBox="0 0 1000 600"
-              preserveAspectRatio="xMidYMid slice"
-              className="h-full w-full"
-              fill="none"
-              aria-hidden="true"
-            >
-              {streets.map((d, i) => (
-                <motion.path
-                  key={i}
-                  d={d}
-                  stroke={SKY}
-                  strokeWidth={1.2}
-                  strokeOpacity={0.25}
-                  vectorEffect="non-scaling-stroke"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={revealed ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-                  transition={{ duration: 1.4, delay: 0.2 + i * 0.12, ease: "easeInOut" }}
-                />
-              ))}
-              <motion.path
-                d={ring}
-                stroke={SKY}
-                strokeWidth={1.6}
-                strokeOpacity={0.4}
-                vectorEffect="non-scaling-stroke"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={revealed ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-                transition={{ duration: 1.8, delay: 0.5, ease: "easeInOut" }}
-              />
-            </svg>
-
-            {DOTS.map((d, i) => (
-              <motion.div
-                key={i}
-                className="absolute size-2.5"
-                style={{ left: `${d.x}%`, top: `${d.y}%`, marginLeft: -5, marginTop: -5 }}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={revealed ? { scale: 1, opacity: 0.9 } : { scale: 0, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.9 + i * 0.1 }}
-              >
-                <span className="absolute inset-0 rounded-full" style={{ background: SKY }} />
-                <motion.span
-                  className="absolute inset-0 rounded-full border"
-                  style={{ borderColor: SKY }}
-                  animate={revealed ? { scale: [1, 3.2], opacity: [0.7, 0] } : { opacity: 0 }}
-                  transition={{
-                    duration: 2.2,
-                    repeat: Infinity,
-                    ease: "easeOut",
-                    delay: 1.4 + i * 0.3,
-                  }}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* vignette and pointer glow */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(43,27,20,0.2)_0%,#2b1b14_92%)]" />
+          {/* backgrounds */}
           <motion.div
             className="pointer-events-none absolute inset-0"
             style={{ background: spotlight }}
           />
+          <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2">
+            <motion.div
+              className="size-[620px] rounded-full bg-sky/50 blur-3xl"
+              animate={{ x: [0, 70, -50, 0], y: [0, 30, -20, 0] }}
+              transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+          <div className="pointer-events-none absolute -bottom-40 -right-20">
+            <motion.div
+              className="size-[440px] rounded-full bg-accent/10 blur-3xl"
+              animate={{ x: [0, -60, 30, 0], y: [0, -40, 20, 0] }}
+              transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
 
           {/* nav */}
           <motion.nav
@@ -288,118 +149,98 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="absolute inset-x-0 top-0 z-20 mx-auto flex max-w-7xl items-center justify-between px-6 py-6"
           >
-            <Link href="/" className="font-display flex items-center gap-2 text-xl text-[#f6f0e6]">
-              <Coffee className="size-5 text-sky" />
+            <Link href="/" className="font-display flex items-center gap-2 text-xl">
+              <Coffee className="size-5 text-accent" />
               Brew Atlas
             </Link>
             <div className="flex items-center gap-6">
-              <SavedLink dark />
+              <SavedLink />
               <a
                 href="#how"
-                className="text-sm text-[#f6f0e6]/70 transition hover:text-[#f6f0e6]"
+                className="text-sm text-muted-foreground transition hover:text-foreground"
               >
                 How it works
               </a>
             </div>
           </motion.nav>
 
-          {/* floating chips (wide screens only) */}
-          {floaters.map((f) => (
+          {/* two columns: search on the left, map card on the right */}
+          <div className="relative mx-auto grid w-full max-w-7xl items-center gap-12 px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
             <motion.div
-              key={f.label}
-              className={`pointer-events-none absolute z-10 hidden xl:block ${f.className}`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={revealed ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-              transition={{ delay: 1.6 + f.delay, duration: 0.8 }}
+              variants={container}
+              initial="hidden"
+              animate={revealed ? "show" : "hidden"}
+              className="flex flex-col items-center text-center lg:items-start lg:text-left"
             >
-              <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: f.delay }}
-                className="flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm text-foreground shadow-xl"
+              <motion.p
+                variants={item}
+                className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground"
               >
-                <f.icon className="size-4 text-sky-deep" />
-                {f.label}
-              </motion.div>
-            </motion.div>
-          ))}
+                Bengaluru cafe finder
+              </motion.p>
 
-          {/* content */}
-          <motion.div
-            variants={container}
-            initial="hidden"
-            animate={revealed ? "show" : "hidden"}
-            className="relative z-10 flex w-full max-w-5xl flex-col items-center px-6 text-center"
-          >
-            <DropPin play={revealed} />
-
-            <motion.p
-              variants={item}
-              className="mb-5 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-[11px] uppercase tracking-[0.3em] text-[#f6f0e6]/75 backdrop-blur"
-            >
-              Bengaluru cafe finder
-            </motion.p>
-
-            <h1 className="font-display max-w-4xl text-5xl leading-[1.08] text-[#f6f0e6] sm:text-6xl xl:text-7xl">
-              {plainWords.map((w) => (
-                <motion.span key={w} variants={item} className="mr-[0.25em] inline-block">
-                  {w}
-                </motion.span>
-              ))}
-              <motion.span variants={item} className="mr-[0.25em] inline-block italic text-sky">
-                just
-              </motion.span>
-              <motion.span variants={item} className="relative inline-block italic text-sky">
-                right
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 200 12"
-                  preserveAspectRatio="none"
-                  className="absolute -bottom-1 left-0 h-3 w-full sm:-bottom-2"
-                  fill="none"
+              <h1 className="font-display text-5xl leading-[1.08] sm:text-6xl xl:text-7xl">
+                {plainWords.map((w) => (
+                  <motion.span key={w} variants={item} className="mr-[0.25em] inline-block">
+                    {w}
+                  </motion.span>
+                ))}
+                <motion.span
+                  variants={item}
+                  className="mr-[0.25em] inline-block italic text-accent"
                 >
-                  <motion.path
-                    d="M2 8C40 2 80 12 120 6S180 4 198 8"
-                    stroke={SKY}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    vectorEffect="non-scaling-stroke"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: revealed ? 1 : 0 }}
-                    transition={{ delay: 1.2, duration: 0.9, ease: "easeInOut" }}
+                  just
+                </motion.span>
+                <motion.span
+                  variants={item}
+                  className="relative isolate inline-block italic text-accent"
+                >
+                  right
+                  <motion.span
+                    aria-hidden
+                    className="absolute bottom-1 left-0 -z-10 h-3 w-full origin-left rounded-full bg-sky sm:h-4"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: revealed ? 1 : 0 }}
+                    transition={{ delay: 1.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
                   />
-                </svg>
-              </motion.span>
-            </h1>
+                </motion.span>
+              </h1>
 
-            <motion.p variants={item} className="mt-6 max-w-xl text-lg text-[#f6f0e6]/70">
-              Search an area or a cafe name and see hours, details and
-              directions before you step through the door.
-            </motion.p>
+              <motion.p
+                variants={item}
+                className="mt-6 max-w-lg text-lg text-muted-foreground"
+              >
+                Search an area or a cafe name and see hours, details and
+                directions before you step through the door.
+              </motion.p>
 
-            <motion.div variants={item} className="mt-10 flex w-full justify-center">
-              <SearchBox />
+              <motion.div variants={item} className="mt-10 flex w-full justify-center lg:justify-start">
+                <SearchBox />
+              </motion.div>
+
+              <motion.p
+                variants={item}
+                className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground lg:justify-start"
+              >
+                <span>{CAFE_COUNT} Bengaluru cafes</span>
+                <span aria-hidden>·</span>
+                <span>Free to use</span>
+                <span aria-hidden>·</span>
+                <span>No sign-up</span>
+              </motion.p>
             </motion.div>
 
-            <motion.p
-              variants={item}
-              className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-[#f6f0e6]/55"
-            >
-              <span>{CAFE_COUNT} Bengaluru cafes</span>
-              <span aria-hidden>·</span>
-              <span>Free to use</span>
-              <span aria-hidden>·</span>
-              <span>No sign-up</span>
-            </motion.p>
-          </motion.div>
+            <HeroMap play={revealed} />
+          </div>
 
           {/* area strip */}
           <motion.div
-            className="relative z-10 mt-14 w-full"
+            className="relative w-full"
             initial={{ opacity: 0 }}
             animate={{ opacity: revealed ? 1 : 0 }}
-            transition={{ delay: 1.8, duration: 0.9 }}
+            transition={{ delay: 1.6, duration: 0.9 }}
           >
-            <AreaMarquee still={still} />
+            <AreaMarquee still={!!reduceMotion} />
           </motion.div>
         </section>
 
