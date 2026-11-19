@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { GlassRoot, glassProps } from "@/components/liquid-glass-root";
 import { PLACES, placeLabel, type Place } from "@/data/places";
 
 type CafeHit = { id: string; name: string; address: string; featured: boolean };
@@ -160,8 +161,28 @@ export function SearchBox() {
 
   return (
     <div className="w-full max-w-xl text-left">
-      <div className="rounded-[2rem] border border-border bg-card/80 p-3 shadow-xl shadow-[#2b1b14]/5 backdrop-blur">
-        <div className="relative">
+      <GlassRoot className="relative rounded-[2rem]">
+        {/* hidden backdrop the glass card refracts — same radius/size as the
+            card, just a soft colour wash so the glass has something to bend */}
+        <div
+          aria-hidden
+          className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-sky/50 via-card to-accent/15"
+        />
+        <div
+          {...glassProps({
+            cornerRadius: 32,
+            blurAmount: 0.18,
+            refraction: 0.35,
+            chromAberration: 0.03,
+            edgeHighlight: 0.05,
+            specular: 0.08,
+            shadowOpacity: 0.2,
+            shadowSpread: 20,
+            shadowOffsetY: 8,
+          })}
+          className="rounded-[2rem] border border-border bg-card/15 p-3 shadow-xl shadow-[#2b1b14]/5"
+        >
+          <div className="relative">
           <form
             onSubmit={handleSubmit}
             className="flex items-center gap-1 rounded-full border border-border bg-background py-1.5 pl-4 pr-1.5 transition focus-within:border-sky-deep focus-within:ring-4 focus-within:ring-sky/50"
@@ -303,7 +324,8 @@ export function SearchBox() {
             Press Enter to search
           </span>
         </div>
-      </div>
+        </div>
+      </GlassRoot>
 
       {error && <p className="mt-3 text-sm text-red-700">{error}</p>}
     </div>

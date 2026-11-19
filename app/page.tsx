@@ -15,6 +15,7 @@ import { HeroMap } from "@/components/hero-map";
 import { IntroLoader } from "@/components/intro-loader";
 import { SavedLink } from "@/components/saved-link";
 import { SearchBox } from "@/components/search-box";
+import { GlassRoot, glassProps } from "@/components/liquid-glass-root";
 import { PLACES, placeLabel } from "@/data/places";
 
 // resets on a full refresh, survives in-app navigation
@@ -142,7 +143,7 @@ export default function Home() {
             />
           </div>
 
-          {/* nav */}
+          {/* nav — back to plain, as originally designed; no glass here */}
           <motion.nav
             initial={{ opacity: 0, y: -16 }}
             animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: -16 }}
@@ -268,13 +269,36 @@ export default function Home() {
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ duration: 0.7, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div className="h-full rounded-3xl border border-border bg-card p-8 transition hover:-translate-y-1 hover:shadow-lg">
-                  <div className="mb-6 flex size-12 items-center justify-center rounded-2xl bg-sky/60 text-primary">
-                    <f.icon className="size-6" />
+                {/* each card is its own tiny glass root: a hidden colour
+                    backdrop (same size/shape as the card) + the card itself
+                    as the glass pane refracting it — layout/classes below
+                    are unchanged from the original card */}
+                <GlassRoot className="relative h-full rounded-3xl">
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 rounded-3xl bg-gradient-to-br from-sky/50 via-card to-accent/15"
+                  />
+                  <div
+                    {...glassProps({
+                      cornerRadius: 24,
+                      blurAmount: 0.22,
+                      refraction: 0.4,
+                      edgeHighlight: 0.06,
+                      specular: 0.1,
+                      shadowOpacity: 0.12,
+                      shadowSpread: 14,
+                      shadowOffsetY: 6,
+                      button: true,
+                    })}
+                    className="h-full rounded-3xl border border-border bg-card/15 p-8 transition hover:-translate-y-1 hover:shadow-lg"
+                  >
+                    <div className="mb-6 flex size-12 items-center justify-center rounded-2xl bg-sky/60 text-primary">
+                      <f.icon className="size-6" />
+                    </div>
+                    <h3 className="font-display text-2xl">{f.title}</h3>
+                    <p className="mt-3 text-muted-foreground">{f.text}</p>
                   </div>
-                  <h3 className="font-display text-2xl">{f.title}</h3>
-                  <p className="mt-3 text-muted-foreground">{f.text}</p>
-                </div>
+                </GlassRoot>
               </motion.div>
             ))}
           </div>
