@@ -165,3 +165,17 @@ body {
 .font-display {
   font-family: var(--font-fraunces), Georgia, serif;
 }
+
+@keyframes drift {
+  from { transform: translateX(-30vw); }
+  to { transform: translateX(120vw); }
+}
+
+.cloud {
+  animation: drift var(--d, 80s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud { animation: none; }
+}

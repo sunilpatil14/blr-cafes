@@ -8,11 +8,11 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
+import { BRAND } from "@/lib/brand";
 
 const OPEN_AT = 2.9; // seconds before the doors start to open
 const SKY = "#bfddf0";
 const CREAM = "#f6f0e6";
-const BRAND = "Brew Atlas";
 
 const draw = (delay: number, duration = 1) => ({
   initial: { pathLength: 0, opacity: 0 },

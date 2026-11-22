@@ -42,3 +42,14 @@ export const PLACES: Place[] = [
   { name: "Yelahanka", lat: 13.1007, lng: 77.5963 },
   { name: "Bannerghatta Road", lat: 12.89, lng: 77.599 },
 ];
+
+// shown on the home-page street; the index below it lists everything else
+export const FEATURED_AREAS = [
+  "Indiranagar",
+  "Koramangala",
+  "HSR Layout",
+  "MG Road",
+  "Jayanagar",
+  "Whitefield",
+  "Malleshwaram",
+];

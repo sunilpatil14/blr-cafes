@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, DM_Sans } from "next/font/google";
+import { BRAND, TAGLINE } from "@/lib/brand";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -13,9 +14,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Brew Atlas — Find your next favourite cafe",
-  description:
-    "Discover cafes near you: interiors, menus and the coffee they serve.",
+  title: { default: `${BRAND} | ${TAGLINE}`, template: `%s | ${BRAND}` },
+  description: "Discover cafes in Bengaluru: hours, details and directions.",
 };
 
 export default function RootLayout({

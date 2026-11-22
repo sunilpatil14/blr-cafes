@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { Check, Link2, Share2 } from "lucide-react";
+import { BRAND } from "@/lib/brand";
 
 export function ShareButton({ name }: { name: string }) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
     const url = window.location.href;
-    const text = `${name} on Brew Atlas`;
+        const text = `${name} on ${BRAND}`;
 
     if ("share" in navigator) {
       try {
