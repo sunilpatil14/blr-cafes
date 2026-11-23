@@ -1,4 +1,5 @@
 import snapshot from "@/data/cafes-bengaluru.json";
+import { chainKey } from "@/lib/chains";
 
 export type Cafe = {
   id: string;
@@ -187,4 +188,23 @@ export async function reverseGeocode(lat: number, lng: number): Promise<string> 
   } catch {
     return "";
   }
+}
+
+export function findByBrand(key: string, lat?: number, lng?: number): Cafe[] {
+  const here =
+    lat !== undefined && lng !== undefined && Number.isFinite(lat) && Number.isFinite(lng)
+      ? { lat, lng }
+      : null;
+
+  const list = SNAP.filter((c) => chainKey(c.name) === key).map((c) => ({
+    ...c,
+    distanceKm: here ? distanceKm(here.lat, here.lng, c.lat, c.lng) : 0,
+  }));
+
+  list.sort((a, b) =>
+    here
+      ? a.distanceKm - b.distanceKm
+      : (a.address || "~").localeCompare(b.address || "~")
+  );
+  return list.slice(0, 80);
 }

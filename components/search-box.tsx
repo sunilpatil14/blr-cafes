@@ -15,10 +15,13 @@ import { Input } from "@/components/ui/input";
 import { GlassRoot, glassProps } from "@/components/liquid-glass-root";
 import { PLACES, placeLabel, type Place } from "@/data/places";
 
-type CafeHit = { id: string; name: string; address: string; featured: boolean };
+type CafeHit = { type: "cafe"; id: string; name: string; address: string; featured: boolean };
+type ChainHit = { type: "chain"; key: string; name: string; count: number };
+type Hit = CafeHit | ChainHit;
 type Option =
   | { kind: "place"; place: Place }
   | { kind: "cafe"; cafe: CafeHit }
+  | { kind: "chain"; chain: ChainHit }
   | { kind: "text" };
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -29,7 +32,7 @@ export function SearchBox() {
   const [city, setCity] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
-  const [cafeHits, setCafeHits] = useState<CafeHit[]>([]);
+  const [cafeHits, setCafeHits] = useState<Hit[]>([]);
   const [locating, setLocating] = useState(false);
   const [surprising, setSurprising] = useState(false);
   const [error, setError] = useState("");
@@ -73,7 +76,11 @@ export function SearchBox() {
 
   const options: Option[] = [
     ...places.map((place) => ({ kind: "place" as const, place })),
-    ...hits.map((cafe) => ({ kind: "cafe" as const, cafe })),
+        ...hits.map((h) =>
+      h.type === "chain"
+        ? { kind: "chain" as const, chain: h }
+        : { kind: "cafe" as const, cafe: h }
+    ),
     ...(typed ? [{ kind: "text" as const }] : []),
   ];
   const current = Math.min(active, Math.max(options.length - 1, 0));
@@ -87,6 +94,10 @@ export function SearchBox() {
       );
     } else if (opt.kind === "cafe") {
       router.push(`/cafes/${opt.cafe.id}`);
+        } else if (opt.kind === "chain") {
+      router.push(
+        `/cafes?brand=${encodeURIComponent(opt.chain.key)}&name=${encodeURIComponent(opt.chain.name)}`
+      );
     } else {
       router.push(`/cafes?city=${encodeURIComponent(typed)}`);
     }
@@ -237,7 +248,9 @@ export function SearchBox() {
                       ? `p-${opt.place.name}`
                       : opt.kind === "cafe"
                         ? `c-${opt.cafe.id}`
-                        : "text"
+                        : opt.kind === "chain"
+                          ? `b-${opt.chain.key}`
+                          : "text"
                   }
                   role="option"
                   aria-selected={i === current}
@@ -274,6 +287,19 @@ export function SearchBox() {
                       )}
                     </>
                   )}
+
+                  {opt.kind === "chain" && (
+                    <>
+                      <Coffee className="size-4 shrink-0 text-accent" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate">{opt.chain.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {opt.chain.count} branches · see all
+                        </span>
+                      </span>
+                    </>
+                  )}
+                  
                   {opt.kind === "text" && (
                     <>
                       <Search className="size-4 shrink-0 text-muted-foreground" />

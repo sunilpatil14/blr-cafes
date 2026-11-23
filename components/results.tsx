@@ -78,6 +78,7 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
   const [infos, setInfos] = useState<Map<string, OpenInfo> | null>(null);
   const [checking, setChecking] = useState(false);
   const [openError, setOpenError] = useState(false);
+  const hasDistance = cafes.some((c) => c.distanceKm > 0);
 
   const counts = useMemo(
     () =>
@@ -156,7 +157,7 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
         <p className="text-muted-foreground">
           {filtering
             ? `Showing ${filtered.length} of ${cafes.length} cafes`
-            : `${cafes.length} cafes · nearest first`}
+            : `${cafes.length} cafes${hasDistance ? " · nearest first" : ""}`}
         </p>
         <button
           type="button"
@@ -203,13 +204,16 @@ export function Results({ cafes }: { cafes: Cafe[] }) {
             );
           })}
 
-          <span className="mx-1 hidden h-6 w-px shrink-0 bg-border sm:block" />
-
-          {DISTANCES.map((d) => (
-            <Chip key={d.label} active={maxKm === d.km} onClick={() => setMaxKm(d.km)}>
-              {d.label}
-            </Chip>
-          ))}
+          {hasDistance && (
+            <>
+              <span className="mx-1 hidden h-6 w-px shrink-0 bg-border sm:block" />
+              {DISTANCES.map((d) => (
+                <Chip key={d.label} active={maxKm === d.km} onClick={() => setMaxKm(d.km)}>
+                  {d.label}
+                </Chip>
+              ))}
+            </>
+          )}
 
           {filtering && (
             <button
