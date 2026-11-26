@@ -208,3 +208,17 @@ export function findByBrand(key: string, lat?: number, lng?: number): Cafe[] {
   );
   return list.slice(0, 80);
 }
+
+export function nearbyCafes(
+  c: { id: string; lat: number; lng: number },
+  n = 6
+): Cafe[] {
+  return SNAP.filter((x) => x.id !== c.id)
+    .map((x) => ({
+      ...x,
+      distanceKm: distanceKm(c.lat, c.lng, x.lat, x.lng),
+    }))
+    .filter((x) => x.distanceKm <= 1.5)
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .slice(0, n);
+}
