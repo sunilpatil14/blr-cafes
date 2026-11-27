@@ -6,6 +6,7 @@ import { SavedLink } from "@/components/saved-link";
 import { SortNearest } from "@/components/sort-nearest";
 import { StatusState, type StatusKind } from "@/components/status-state";
 import { findByBrand, findCafes, geocodeCity, type Cafe } from "@/lib/cafes";
+import { Wordmark } from "@/components/wordmark";
 
 export default async function CafesPage({
   searchParams,

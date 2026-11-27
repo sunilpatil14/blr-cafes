@@ -11,6 +11,7 @@ import { GlassRoot, glassProps } from "@/components/liquid-glass-root";
 import { FEATURED_AREAS, PLACES, placeLabel, type Place } from "@/data/places";
 import { Editorial } from "@/components/editorial";
 import { BRAND } from "@/lib/brand";
+import { Wordmark } from "@/components/wordmark";
 
 // resets on a full refresh, survives in-app navigation
 let introPlayed = false;
@@ -312,7 +313,7 @@ export default function Home() {
           >
             <Link href="/" className="font-display flex items-center gap-2 text-xl">
               <Coffee className="size-5 text-accent" />
-              {BRAND}
+              <Wordmark />
             </Link>
             <div className="flex items-center gap-6">
               <SavedLink />
@@ -473,7 +474,9 @@ export default function Home() {
         </section>
 
         <footer className="border-t border-border px-6 py-10 text-center text-xs text-muted-foreground">
-          <p className="font-display text-base text-foreground">{BRAND}</p>         
+            <p className="text-base text-foreground">
+             <Wordmark />
+            </p>      
            <p className="mt-2">Cafe data © OpenStreetMap contributors</p>
         </footer>
       </main>

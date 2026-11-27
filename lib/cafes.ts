@@ -222,3 +222,5 @@ export function nearbyCafes(
     .sort((a, b) => a.distanceKm - b.distanceKm)
     .slice(0, n);
 }
+
+export const snapshotCafe = (id: string) => SNAP.find((c) => c.id === id) ?? null;

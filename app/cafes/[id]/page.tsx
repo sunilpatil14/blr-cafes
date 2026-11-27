@@ -18,10 +18,14 @@ import { OpenBadge } from "@/components/open-badge";
 import { SaveButton } from "@/components/save-button";
 import { ShareButton } from "@/components/share-button";
 import { StatusState } from "@/components/status-state";
-import { getCafeById, nearbyCafes, reverseGeocode, type Cafe } from "@/lib/cafes";
+import { getCafeById, nearbyCafes, reverseGeocode, snapshotCafe, type Cafe } from "@/lib/cafes";
 import { getFeatured } from "@/lib/featured";
 import { prettyHours } from "@/lib/hours";
 import { directionsUrl, placeUrl } from "@/lib/places";
+import type { Metadata } from "next";
+import { BRAND } from "@/lib/brand";
+
+
 
 export const instant = false;
 
@@ -42,6 +46,25 @@ function Fact({
 
 const dist = (km: number) =>
   km < 1 ? `${Math.max(10, Math.round((km * 1000) / 10) * 10)} m` : `${km.toFixed(1)} km`;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const c = snapshotCafe(id);
+  if (!c) return {};
+
+  const where = c.address || "Bengaluru";
+  const description = `${c.name}, ${where}. Hours, details and directions.`;
+
+  return {
+    title: c.name,
+    description,
+    openGraph: { title: `${c.name} | ${BRAND}`, description, type: "website" },
+  };
+}
 
 export default async function CafeDetailPage({
   params,
